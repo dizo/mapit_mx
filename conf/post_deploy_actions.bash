@@ -25,7 +25,7 @@ source $virtualenv_activate
 pip install wheel
 
 # The next packages are optional
-pip install python-memcached
+pip install pymemcache
 
 # Install the correct version of GDAL
 pip install gdal==$(gdal-config --version)
