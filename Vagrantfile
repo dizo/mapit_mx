@@ -5,8 +5,8 @@ Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/focal64"
 
   # Enable NFS access to the disk
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.synced_folder ".", "/vagrant/mapit", :nfs => true
+  config.vm.synced_folder ".", "/vagrant", disabled: false
+  config.vm.synced_folder ".", "/vagrant/mapit"
 
   # NFS requires a host-only network
   # This also allows you to test via other devices (e.g. mobiles) on the same
