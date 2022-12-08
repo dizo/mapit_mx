@@ -10,28 +10,28 @@ cd "$(dirname $BASH_SOURCE)"/..
 # them back to the defaults which is what they would have on the servers.
 PYTHONDONTWRITEBYTECODE=""
 
-# create the virtual environment
-virtualenv_dir='../virtualenv-mapit'
-virtualenv_activate="$virtualenv_dir/bin/activate"
+#create the virtual environment
+virtualenv_dir='~/.virtualenvs/mapit/'
+virtualenv_activate="$virtualenvs/mapit/bin/activate"
 
-if [ ! -f "$virtualenv_activate" ]
-then
+#if [ ! -f "$virtualenv_activate" ]
+#then
     python3 -m venv $virtualenv_dir
-fi
+#fi
 
-source $virtualenv_activate
+#source $virtualenv_activate
 
 # Install Wheel
-pip install wheel
+pip3 install wheel
 
 # The next packages are optional
-pip install pymemcache
+pip3 install pymemcache
 
 # Install the correct version of GDAL
-pip install gdal==$(gdal-config --version)
+#pip install GDAL==$(gdal-config --version)
 
 # Install all the packages
-pip install -e .
+pip3 install -e .
 
 # make sure that there is no old code (the .py files may have been git deleted) 
 find . -name '*.pyc' -delete

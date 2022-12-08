@@ -53,7 +53,7 @@ setup(
     install_requires=[
         'Django >= 1.11.2',
         'libsass >= 0.13.3',
-        'psycopg2',
+        'psycopg2-binary',
         'PyYAML',
         'Shapely',
         'six',
