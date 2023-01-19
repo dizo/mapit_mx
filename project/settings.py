@@ -1,6 +1,9 @@
 import os
 import yaml
 from .utils import skip_unreadable_post, find_module
+import sys
+import dj_database_url
+from pathlib import Path
 
 # Path to here is something like
 # .../<repo>/<project_name>/settings.py
@@ -41,7 +44,9 @@ GOOGLE_ANALYTICS = config.get('GOOGLE_ANALYTICS', '')
 
 # Django settings for mapit project.
 
-DEBUG = config.get('DEBUG', True)
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
+DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
 
 # (Note that even if DEBUG is true, output_json still sets a
 # Cache-Control header with max-age of 28 days.)
@@ -76,21 +81,29 @@ if config.get('BUGS_EMAIL'):
 if config.get('EMAIL_SUBJECT_PREFIX'):
     EMAIL_SUBJECT_PREFIX = config['EMAIL_SUBJECT_PREFIX']
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': config.get('MAPIT_DB_NAME', 'mapit'),
-        'USER': config.get('MAPIT_DB_USER', 'mapit'),
-        'PASSWORD': config.get('MAPIT_DB_PASS', ''),
-        'HOST': config.get('MAPIT_DB_HOST', ''),
-        'PORT': config.get('MAPIT_DB_PORT', ''),
+if DEVELOPMENT_MODE is True:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': config.get('MAPIT_DB_NAME', 'mapit'),
+            'USER': config.get('MAPIT_DB_USER', 'mapit'),
+            'PASSWORD': config.get('MAPIT_DB_PASS', ''),
+            'HOST': config.get('MAPIT_DB_HOST', ''),
+            'PORT': config.get('MAPIT_DB_PORT', ''),
+        }
     }
-}
+    
+elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
+    if os.getenv("DATABASE_URL", None) is None:
+        raise Exception("DATABASE_URL environment variable not defined")
+    DATABASES = {
+        "default": dj_database_url.parse(os.environ.get("DATABASE_URL")),
+    }
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = config.get('DJANGO_SECRET_KEY', '')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -146,8 +159,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = os.path.join(PARENT_DIR, 'collected_static')
-
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
