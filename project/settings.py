@@ -1,6 +1,7 @@
 import os
 import yaml
 from .utils import skip_unreadable_post, find_module
+import mapit.djangopatch  # noqa
 
 # Path to here is something like
 # .../<repo>/<project_name>/settings.py
@@ -54,10 +55,10 @@ if DEBUG:
     CACHE_MIDDLEWARE_SECONDS = 0
 else:
     try:
-        import memcache  # noqa
+        import pylibmc  # noqa
         CACHES = {
             'default': {
-                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
                 'LOCATION': '127.0.0.1:11211',
                 'TIMEOUT': 86400,
             }
@@ -209,9 +210,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
-    'django.contrib.admin',
     'django.contrib.gis',
     'django.contrib.staticfiles',
+    'project.apps.AdminConfig',
     'mapit',
 ]
 
@@ -237,12 +238,16 @@ LOGGING = {
 }
 
 if MAPIT_COUNTRY:
-    try:
-        c = 'mapit_%s' % MAPIT_COUNTRY.lower()
-        find_module(c)
+    c = 'mapit_%s' % MAPIT_COUNTRY.lower()
+    c_spec = find_module(c)
+    if c_spec is not None:
         # Put before 'mapit', so country templates take precedence
         INSTALLED_APPS.insert(INSTALLED_APPS.index('mapit'), c)
-    except:
-        pass
 
 DATE_FORMAT = 'j F Y'
+
+DEFAULT_AUTO_FIELD = config.get('DEFAULT_AUTO_FIELD', 'django.db.models.AutoField')
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler"
+]

@@ -1,13 +1,12 @@
 import itertools
 import re
 
-from six.moves import map
 from django import http
 from django.db import connection
 from django.conf import settings
 from django.shortcuts import get_object_or_404 as orig_get_object_or_404
 from django.template import loader
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from mapit.iterables import defaultiter
 
@@ -78,7 +77,14 @@ def output_json(out, code=200):
 def output_polygon(content_type, output):
     response = http.HttpResponse(content_type='%s; charset=utf-8' % content_type)
     response['Access-Control-Allow-Origin'] = '*'
-    response['Cache-Control'] = 'max-age=2419200'  # 4 weeks
+
+    # HACK: Some polygons are too large to store in memcached.
+    # PyLibMC throws an exception when this happens and the request fails.
+    # Setting max-age to 0 to prevent Django trying to cache in memcached
+    # and s-maxage so any 'upstream' caching can still be attempted.
+    # 2419200 is 4 weeks.
+    response['Cache-Control'] = 's-maxage=2419200, max-age=0'
+
     response.write(output)
     return response
 
